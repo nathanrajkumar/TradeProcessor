@@ -1,0 +1,11 @@
+spring:
+  kafka:
+    consumer:
+      group-id: trade_message_processor
+      auto-offset-reset: earliest
+    # TODO: add docker file to auto start kafka server
+    bootstrap-servers: localhost:9092
+
+trade-processor:
+  topic-name: trade_message
+  messages-per-request: 10
