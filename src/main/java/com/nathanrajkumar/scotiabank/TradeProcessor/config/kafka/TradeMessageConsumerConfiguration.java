@@ -1,11 +1,6 @@
 package com.nathanrajkumar.scotiabank.TradeProcessor.config.kafka;
 
-import com.nathanrajkumar.scotiabank.TradeProcessor.model.Message;
-import com.nathanrajkumar.scotiabank.TradeProcessor.model.PracticalAdvice;
-import com.nathanrajkumar.scotiabank.TradeProcessor.model.TradeMessage;
 import org.springframework.kafka.annotation.EnableKafka;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +38,6 @@ public class TradeMessageConsumerConfiguration {
 
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
-        final JsonDeserializer<com.nathanrajkumar.scotiabank.TradeProcessor.model.Message> jsonDeserializer = new JsonDeserializer<>();
-        jsonDeserializer.addTrustedPackages("*");
         return new DefaultKafkaConsumerFactory<>(kafkaProperties.buildConsumerProperties(), new StringDeserializer(), new StringDeserializer());
     }
 

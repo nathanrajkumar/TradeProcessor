@@ -1,12 +1,15 @@
 package com.nathanrajkumar.scotiabank.TradeProcessor.config.kafka;
 
-import com.nathanrajkumar.scotiabank.TradeProcessor.model.Message;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.kafka.support.ProducerListener;
+import org.springframework.kafka.support.converter.StringJsonMessageConverter;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import com.nathanrajkumar.scotiabank.TradeProcessor.model.PracticalAdvice;
 import com.nathanrajkumar.scotiabank.TradeProcessor.model.TradeMessage;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.springframework.beans.PropertyAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,11 +25,8 @@ import java.util.Map;
 @Configuration
 @EnableKafka
 public class TradeMessageProducerConfiguration {
-    /**
-     * Host and port Kafka is running on
-     */
-//    @Value("${kafka.bootstrap-servers}")
-//    private String bootstrapServers;
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private KafkaProperties kafkaProperties;
@@ -39,7 +39,6 @@ public class TradeMessageProducerConfiguration {
     @Bean
     public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>(kafkaProperties.buildProducerProperties());
-        //props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         return props;
@@ -47,7 +46,7 @@ public class TradeMessageProducerConfiguration {
 
     /**
      * creates Kafka producer instances
-     * @return ProducerFactory<String, String>
+     * @return ProducerFactory<String, TradeMessage>
      */
     @Bean
     public ProducerFactory<String, TradeMessage> producerFactory() {
@@ -55,11 +54,21 @@ public class TradeMessageProducerConfiguration {
     }
 
     /**
-     * Kafka Template sends the message to the respective topic, this is the end result
-     * @return KafkaTemplate<String, String>
+     * Kafka Template sends the produicer record to topic trade_message, this is the end result
+     * @return KafkaTemplate<String, TradeMessage>
      */
     @Bean
     public KafkaTemplate<String, TradeMessage> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+        KafkaTemplate<String, TradeMessage> kafkaTemplate = new KafkaTemplate<>(producerFactory());
+        kafkaTemplate.setMessageConverter(new StringJsonMessageConverter());
+        kafkaTemplate.setDefaultTopic("trade_message");
+        kafkaTemplate.setProducerListener(new ProducerListener<String, TradeMessage>() {
+            @Override
+            public void onSuccess(ProducerRecord<String, TradeMessage> producerRecord, RecordMetadata recordMetadata) {
+                logger.info("ACK from ProducerListener message: {} offset:  {}", producerRecord.value(),
+                        recordMetadata.offset());
+            }
+        });
+        return kafkaTemplate;
     }
 }

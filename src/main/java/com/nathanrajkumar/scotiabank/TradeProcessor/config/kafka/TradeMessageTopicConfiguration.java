@@ -11,8 +11,11 @@ public class TradeMessageTopicConfiguration {
 
     @Value("${trade-processor.topic-name}")
     private String topicName;
+
     @Bean
     public NewTopic tradeMessageTopic() {
-        return new NewTopic(topicName, 3, (short) 1);
+        return TopicBuilder.name(topicName)
+                .partitions(1)
+                .build();
     }
 }

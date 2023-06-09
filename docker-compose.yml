@@ -1,3 +1,5 @@
+# This docker file I used in my spring boot testing but I could not connect my angular app to the kafka cluster
+# this made for some reason.  For further testing, I manually started the broker and zookeeper.
 version: '2'
 services:
   zookeeper:
